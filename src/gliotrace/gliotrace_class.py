@@ -261,7 +261,7 @@ class GlioTrace:
             # If no cells still not found
             if tracked_stack is None:
                 print(
-                    f"Warning, dropped row {row_i}: exp {self._subtable.loc[row_i, "exp"]}, roi {self._subtable.loc[row_i, "roi"]}")
+                    f"Warning, dropped row {row_i}: exp {self._subtable.loc[row_i, 'exp']}, roi {self._subtable.loc[row_i, 'roi']}")
                 self._subtable = self._subtable.drop([row_i])
 
                 # Important if last tracked_stack happens to be None
