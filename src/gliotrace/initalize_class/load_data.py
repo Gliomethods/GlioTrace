@@ -138,7 +138,7 @@ def build_stack_table_flex(
     if "delta_t" not in stacktable.columns:
         raise ValueError("metadata is missing required column 'delta_t'")
 
-    # 2) missing experiments (your existing behavior)
+    # 2) missing experiments
     missing_ids = stacktable.loc[stacktable["delta_t"].isna(
     ), "experiment_id"].unique()
     if len(missing_ids) > 0:

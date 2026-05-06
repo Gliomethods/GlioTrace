@@ -60,7 +60,7 @@ def validate_stackfile(obj: list | str | Path) -> list[Path]:
             if not s or s.startswith("#"):
                 continue
 
-            # If the file is TSV (like your pandas sep="\t"), take first column as path
+            # If the file is TSV then take first column as path
             path_str = s.split("\t", 1)[0].strip().strip('\'"')
             if not path_str:
                 continue
