@@ -22,15 +22,29 @@ def _init_sticky_A(K, stay=0.95):
     return A
 
 
-def hmm_pipeline(data, fcols, hmm_param):
+def hmm_pipeline(data, fcols, hmm_param, filter_by = None, scalers = None):
     """
     Prepares features and runs HMM model with given features and logits from the CNN
 
-    Author: Linnea Hallin, André Lasses Armatowski
+    Author: Linnea Hallin, André Lasses Armatowski (adapted)
     """
 
     if fcols is None or len(fcols) == 0:
         raise ValueError("fcols must be a non-empty list of feature columns")
+
+    if (scalers is not None) and (not all([scaler in fcols for scaler in scalers.keys()])):
+        missing_cols = set(scalers.keys()) - set(fcols)
+        raise ValueError(f"Scalers provided for columns not in fcols: {missing_cols}")
+
+    if filter_by is not None:
+        idx = np.ones(len(data), dtype=bool)
+        for col, values in filter_by.items():
+            if col not in data.columns:
+                raise ValueError(f"Column '{col}' specified in filter_by not found in data")
+            idx = idx & data[col].isin(values)
+        data = data.loc[list(idx)].copy()
+        if data.empty:
+            raise ValueError("No data left after filtering by filter_by. Check the filter_by values provided.")
 
     # ----------- Create features -----------
     print("--- Creating features ---")
@@ -54,7 +68,7 @@ def hmm_pipeline(data, fcols, hmm_param):
     )
     if data_feat is None:
         raise RuntimeError("No usable tracks after filtering")
-
+    
     # ---------- Constant columns warning ---------------
     exclude = set(NON_SCALE_COLUMNS) | set(HARD_CODED_FEATURES)
     check_cols = [
@@ -78,26 +92,30 @@ def hmm_pipeline(data, fcols, hmm_param):
     n_states = len(softmax_columns)
 
     # ----------- Create initial A -----------
+    # NOTE: Can be changed
     print("--- Intialize transitions ---")
     A = _init_sticky_A(n_states, stay=0.95)
+    #smoothed_data = smooth_tracks(data_feat);
+    #A = count_label_transitions(smoothed_data)
 
     # ----------- Scale and format -----------
     print("--- Final Preperations for GLM-HMM ---")
+
     exclude = set(NON_SCALE_COLUMNS) | set(HARD_CODED_FEATURES)
-    scale_cols = [
-        c for c in fcols if c not in exclude and not c.endswith("_treat")]
+    scale_cols = [c for c in fcols if c not in exclude]
 
-    # Scale the non-treatment columns which should be scaled
-    if scale_cols:
-        X = data_feat[scale_cols].astype(np.float32)
-        data_feat.loc[:, scale_cols] = StandardScaler().fit_transform(X)
+    if scalers is not None:
+        for col, scaler in scalers.items():
+            if col in data_feat.columns:
+                data_feat.loc[:, col] = scaler.transform(data_feat[[col]])
+                if col in scale_cols:
+                    scale_cols.remove(col)
+                else: 
+                    print(f"Warning: Column {col} provided in scalers is not usually scaled. Check if this is intentional.")
 
-    # Build interactions from scaled
-    for c in scale_cols:
-        tc = f"{c}_treat"
-        if tc in data_feat.columns:
-            data_feat[tc] = (
-                data_feat[c] * data_feat["is_treatment"].astype(np.float32)).astype(np.float32)
+    if len(scale_cols) > 0:
+        data_feat.loc[:, scale_cols] = StandardScaler(
+        ).fit_transform(data_feat[scale_cols])
 
     # Put data into correct format for HMM (trajectories-only version)
     track_data, cnn_outputs = format_data(
@@ -112,6 +130,7 @@ def hmm_pipeline(data, fcols, hmm_param):
     eps = hmm_param["eps"]
 
     # ----------- Initialize pi -----------
+    # NOTE: Can be changed
     pi0 = np.ones(n_states, dtype=float) / float(n_states)
 
     # ----------- Fit HMM -----------
@@ -125,7 +144,7 @@ def hmm_pipeline(data, fcols, hmm_param):
         eps_conv=eps,
         A=A,
         state_names=softmax_columns,
-        patience=10
+        patience=5
     )
 
     # Align gamma and data_feat times
@@ -145,3 +164,4 @@ def hmm_pipeline(data, fcols, hmm_param):
         data_feat, viterbi_df, K=n_states)
 
     return data_feat_unfiltered, data_feat, pi, glm_models, A_global, gammas
+
