@@ -31,6 +31,12 @@ Preprocessing and analysis of image data happens in a discrete set of steps usin
 
 ![Flowchart of framework](README_material/gt_framework.svg)
 
+## Example datasets
+
+We have prepared a larger example dataset containing both control and treated cells. It can be downloaded as a .zip file from Hugging Face following the link below:
+
+https://huggingface.co/datasets/shipsauce/gliotrace_example_data
+
 # Installation
 
 Installing GlioTrace
