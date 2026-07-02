@@ -37,9 +37,43 @@ We have prepared a larger example dataset containing both control and treated ce
 
 https://huggingface.co/datasets/shipsauce/gliotrace_example_data
 
+Run-time on the demo dataset using a 16Gb RAM M2 Mac: ~3.5 hrs
+
+# System requirements
+
+## Hardware requirements
+GlioTrace requires a standard computer with enough RAM to support in-memory image processing operations.
+
+Note: GlioTrace is not compatible with older Intel Xeon-based Mac systems (e.g. Mac Pro pre-2019) due to hardware architecture limitations of required dependencies.
+
+## Software requirements 
+### OS requirements
+GlioTrace is supported on Linux, Windows and macOS (Apple Silicon only). The package has been tested on the following systems:
+- macOS: Apple M2 Pro
+
+### Python requirements
+GlioTrace requires Python 3.11–3.13.
+
+### Python dependencies
+`imageio>=2.37.2
+matplotlib>=3.10.8
+numpy>=2.0
+opencv-python>=4.12.0.88
+pandas>=2.3.3
+scikit-learn>=1.8.0
+scipy>=1.16.3
+scikit-image>=0.25.0
+tifffile>=2025.10.16
+torch>=2.3.1
+tqdm>=4.67.1
+imageio-ffmpeg
+joblib`
+
 # Installation
 
-Installing GlioTrace
+Estimated installation time: ~10 mins
+
+## Installing GlioTrace
 
 1.	Create a new folder in your local file system and navigate to the folder inside a new terminal window. To clone the GlioTrace repository into the folder, run the following:
 
