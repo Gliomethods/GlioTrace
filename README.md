@@ -48,8 +48,8 @@ Note: GlioTrace is not compatible with older Intel Xeon-based Mac systems (e.g. 
 
 ## Software requirements 
 ### OS requirements
-GlioTrace is supported on Linux, Windows and macOS (Apple Silicon only). The package has been tested on the following systems:
-- macOS: Apple M2 Pro
+GlioTrace is supported on Linux, Windows and macOS. The package has been tested on the following systems:
+- macOS (Tahoe 26.5.1)
 
 ### Python requirements
 GlioTrace requires Python 3.11–3.13.
