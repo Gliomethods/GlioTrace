@@ -355,7 +355,7 @@ class GlioTrace:
         self,
         treatment: str,
         cell_line: Optional[str] = None,
-        dose=None,
+        dose: Optional[list[int]] = None,
         control: str | list[str] = ["control"],
     ) -> np.ndarray:
         """
@@ -396,14 +396,16 @@ class GlioTrace:
             if has_patient_id and cell_line is not None:
                 return df["patient_id"] == cell_line
             return pd.Series(True, index=df.index)
+        
+        cl_mask = _cl_mask(metadata_df)
 
         if treatment in control:
             return metadata_df[
-                _cl_mask(metadata_df)
+                cl_mask
                 & metadata_df["perturbation"].isin(control)
             ]["experiment_id"].unique()
 
-        treat_idx = _cl_mask(metadata_df) & (
+        treat_idx = cl_mask & (
             metadata_df["perturbation"] == treatment
         )
         if dose is not None:
@@ -413,21 +415,22 @@ class GlioTrace:
 
         if "set" not in metadata_df.columns:
             matched_exp_control = metadata_df[
-                _cl_mask(metadata_df) & metadata_df["perturbation"].isin(control)
-            ]|["experiment_id"].unique()
+                cl_mask & metadata_df["perturbation"].isin(control)
+            ]["experiment_id"].unique()
         else:
             sets = metadata_df[
                 metadata_df["experiment_id"].isin(matched_exp_treat)
             ]["set"].unique()
             matched_exp_control = metadata_df[
-                _cl_mask(metadata_df)
+                cl_mask
                 & metadata_df["perturbation"].isin(control)
                 & metadata_df["set"].isin(sets)
             ]["experiment_id"].unique()
 
         if len(matched_exp_control)==0:
-            control_idx = _cl_mask(metadata_df) & metadata_df["perturbation"].isin(control)
-            matched_exp_control = metadata_df[control_idx]["experiment_id"].unique()
+            matched_exp_control = metadata_df[
+                cl_mask & metadata_df["perturbation"].isin(control)
+            ]["experiment_id"].unique()
 
         return np.concatenate([matched_exp_treat, matched_exp_control])
     
@@ -442,7 +445,7 @@ class GlioTrace:
         self,
         treatment: str,
         cell_line: Optional[str] = None,
-        dose=None,
+        dose: Optional[list[int]] = None,
         control: str | list[str] = ["control"],
         save_path: str = "runs/modelled/default_run/",
         filter_by: dict = {},
@@ -488,7 +491,8 @@ class GlioTrace:
         exps = self.get_matched_control_exp(
             treatment,
             cell_line=cell_line,
-            dose=dose, control=control,
+            dose=dose, 
+            control=control,
         )
 
         filter_by_fcn = filter_by.copy()
@@ -511,7 +515,7 @@ class GlioTrace:
         cell_line: Optional[str] = None,
         fcols: list[str] = None,
         treat_interactions: Optional[list[str]] = None,
-        dose=None,
+        dose: Optional[list[int]] = None,
         control: str | list[str] = ["control"],
         non_scale_columns=NON_SCALE_COLUMNS,
     ) -> dict:
@@ -557,7 +561,8 @@ class GlioTrace:
         exps = self.get_matched_control_exp(
             treatment,
             cell_line=cell_line,
-            dose=dose, control=control,
+            dose=dose, 
+            control=control,
         )
 
         data_feat_unscaled = self._data_feat.loc[
@@ -583,7 +588,7 @@ class GlioTrace:
         treatment: str,
         fcols: list[str],
         cell_line: Optional[str] = None,
-        dose=None,
+        dose: Optional[list[int]] = None,
         control: str | list[str] = ["control"],
         save_path: str = "runs/modelled/",
         run_by: Optional[str] = None,
@@ -673,7 +678,8 @@ class GlioTrace:
         exps = self.get_matched_control_exp(
             treatment,
             cell_line=cell_line,
-            dose=dose, control=control,
+            dose=dose, 
+            control=control,
         )
 
         data_feat_unscaled = self._data_feat.loc[
@@ -686,7 +692,8 @@ class GlioTrace:
             cell_line=cell_line,
             fcols=fcols,
             treat_interactions=treat_interactions,
-            dose=dose, control=control,
+            dose=dose, 
+            control=control,
         )
 
         save_paths = {}
@@ -699,7 +706,8 @@ class GlioTrace:
             self.run_hmm_by(
                 treatment,
                 cell_line=cell_line,
-                dose=dose, control=control,
+                dose=dose, 
+                control=control,
                 save_path=save_path_full,
                 scalers=scalers,
                 fcols=fcols_full,
@@ -725,7 +733,8 @@ class GlioTrace:
             self.run_hmm_by(
                 treatment,
                 cell_line=cell_line,
-                dose=dose, control=control,
+                dose=dose, 
+                control=control,
                 save_path=save_path_excl,
                 scalers=scalers,
                 fcols=fcols_full,
@@ -740,7 +749,7 @@ class GlioTrace:
         treatment: str,
         fcols: list[str],
         cell_line: Optional[str] = None,
-        dose=None,
+        dose: Optional[list[int]] = None,
         control: str | list[str] = ["control"],
         treat_interactions: Optional[list[str]] = None,
         run_by: Optional[str] = None,
@@ -820,8 +829,6 @@ class GlioTrace:
             **kwargs,
         )
 
-        fcols_full = fcols + [f"{feat}_treat" for feat in treat_interactions]
-
         full = self.__class__.load_run(save_paths["full"])
         jackknives = [
             self.__class__.load_run(save_paths[key])
@@ -891,7 +898,7 @@ class GlioTrace:
         fcols: list[str],
         cell_line: Optional[str] = None,
         treatment: Optional[str] = None,
-        dose=None,
+        dose: Optional[list[int]] = None,
         control: str | list[str] = ["control"],
         treat_interactions: Optional[list[str]] = None,
         run_by: Optional[str] = None,
