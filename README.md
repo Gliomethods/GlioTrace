@@ -77,7 +77,7 @@ Estimated installation time: ~10 mins
 
 1.	Create a new folder in your local file system and navigate to the folder inside a new terminal window. To clone the GlioTrace repository into the folder, run the following:
 
-`git clone https://github.com/Gliomethods/GlioTrace2.0.git`
+`git clone https://github.com/Gliomethods/GlioTrace.git`
 
 2.	We recommend installing GlioTrace using a virtual environment to avoid conflicts with package versions that GlioTrace depends on (e.g numpy). We use the venv module in Python to create a virtual environment based on Python. To create a virtual environment, run the following in the same folder you cloned the repository into:
 
@@ -87,7 +87,7 @@ Estimated installation time: ~10 mins
 
 `source venv/bin/activate`
 
-4.	To install the GlioTrace package, navigate to GlioTrace2.0 and run:
+4.	To install the GlioTrace package, navigate to GlioTrace and run:
 
 `pip install .`
 
